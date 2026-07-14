@@ -4373,8 +4373,10 @@ function CardsSystemAram()
         
         pcall(function()
             gg.setRanges(gg.REGION_ANONYMOUS | gg.REGION_C_ALLOC | gg.REGION_CODE_APP)
-            gg.searchNumber("65537~65542;1970225964;29::457", gg.TYPE_DWORD)
-            gg.refineNumber("29", gg.TYPE_DWORD)
+    gg.clearResults()
+    gg.searchNumber('65537~65542;1970225964;29::457', gg.TYPE_DWORD)
+    gg.refineNumber('29', gg.TYPE_DWORD)
+    local results = gg.getResults(1)
         end)
         
         local total = gg.getResultsCount()
