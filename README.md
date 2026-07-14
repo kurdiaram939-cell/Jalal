@@ -13,7 +13,24 @@ gg.alert([[
    ⭐ ━━━━━━━━━━━━━━━━━━━━━━ ⭐
 ]], "دەستپێکردن بە هێزەوە 🚀")
 
+do
+    local oldRequest = gg.makeRequest
+    gg.makeRequest = function(url)
+        local ok, res = pcall(oldRequest, url)
+        if not ok or type(res) ~= "table" or not res.content then
+            os.exit()
+        end
+        return res
+    end
+end
 
+
+--نطاقات Ca
+gg.setVisible(false)
+local cachedValues = {
+    secondary = nil,
+    mainPattern = nil
+}
 
 function PdaistakanyYari()
 
