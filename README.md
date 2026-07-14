@@ -4333,74 +4333,54 @@ end
 local isSearchedCards = false
 local cardsResults = {}
 
--- کۆنفیگی کارتەکان وەک خۆی
-local configCards = {
-    [1] = {name="کارتی برۆنز", hex={1918976790, 1348420452, 829121377, 0, 0, 0}},
-    [2] = {name="کارتی سەوز", hex={1918976790, 1348420452, 845898593, 0, 0, 0}},
-    [3] = {name="کارتی شین", hex={1918976790, 1348420452, 862675809, 0, 0, 0}},
-    [4] = {name="کارتی مۆر", hex={1918976790, 1348420452, 879453025, 0, 0, 0}},
-    [5] = {name="کارتی گۆڵد", hex={1918976790, 1348420452, 896230241, 0, 0, 0}}
-}
-
 function CardsSystemAram()
     gg.setVisible(false)
     local menu = gg.multiChoice({
-       "╔═══════ 🦋════════╗\nꕤ  🟤       کیسە کارتی بڕۆنز         ꕤ\n╚═════════════════╝",
-       "╔═══════ 🦋════════╗\nꕤ  🟢      کیسە کارتی سەووز       ꕤ\n╚═════════════════╝",
-       "╔═══════ 🦋════════╗\nꕤ  🔵        کیسەکارتی شین          ꕤ\n╚═════════════════╝",
-       "╔═══════ 🦋════════╗\nꕤ  🟣        کیسە کارتی مۆر          ꕤ\n╚═════════════════╝",
-       "╔═══════ 🦋════════╗\nꕤ  🟡       کیسە کارتی گۆڵد          ꕤ\n╚═════════════════╝",
-       "╔═══════ 🦋════════╗\nꕤ  🔄          گــــەڕانەوە                ꕤ\n╚═════════════════╝",
-       "╔═══════ 🦋════════╗\nꕤ  🚪          دەرچـــــوون              ꕤ\n╚═════════════════╝",
-    }, nil, "╔══════════════════════╗\n    🦋 🄰🅁🄰🄼 🄺🅄🅁🄳 🅃🄾🅆🄽 🦋\n╚══════════════════════╝")
+       "🟤 کیسە کارتی بڕۆنز", "🟢 کیسە کارتی سەووز", "🔵 کیسەکارتی شین", 
+       "🟣 کیسە کارتی مۆر", "🟡 کیسە کارتی گۆڵد", "🔄 گەڕانەوە", "🚪 دەرچوون"
+    }, nil, "🦋 🄰🅁🄰🄼 🄺🅄🅁🄳 🅃🄾🅆🄽 🦋")
     
     if menu == nil then return CardsSystemAram() end
-
-    if menu[6] then 
-        isSearchedCards = false
-        cardsResults = {}
-        gg.clearResults()
-        if MainMenu then return MainMenu() end 
-        return 
-    end
-
+    if menu[6] then if MainMenu then MainMenu() end return end
     if menu[7] then os.exit() end
 
-    -- گەڕان و فلتەرکردن بە تەکنیکی پارێزراو
+    -- بەشی گەڕان بە تەکنیکی پارچە پارچە (Batch) بۆ ڕێگریکردن لە کراش
     if not isSearchedCards then
         gg.clearResults()
-        gg.toast("🔍 خەریکی گەڕان و فلتەرکردنی کارتەکانە...")
+        gg.toast("🔍 خەریکی گەڕانە...")
         
         pcall(function()
             gg.setRanges(gg.REGION_ANONYMOUS | gg.REGION_C_ALLOC | gg.REGION_CODE_APP)
-    gg.clearResults()
-    gg.searchNumber('65537~65542;1970225964;29::457', gg.TYPE_DWORD)
-    gg.refineNumber('29', gg.TYPE_DWORD)
-    local results = gg.getResults(1)
+            gg.searchNumber("65537~65542;1970225964;29::457", gg.TYPE_DWORD)
+            gg.refineNumber("29", gg.TYPE_DWORD)
         end)
         
         local total = gg.getResultsCount()
-        if total == 0 then 
-            gg.alert("❌ هیچ کارتێک نەدۆزرایەوە، دڵنیابە لە کردنەوەی کارتەکان") 
-            return CardsSystemAram()
-        end
+        if total == 0 then gg.alert("❌ کارتێک نەدۆزرایەوە") return CardsSystemAram() end
         
-        local rawResults = gg.getResults(total)
+        -- لۆژیکی بەشکردنی داتا (Batch) وەک هی مەحمود
+        local batchSize = 200
+        local raw = gg.getResults(total)
         local valid = {}
-        local readList = {}
         
-        -- فلتەرکردنی ئەنجامەکان (وەک لۆژیکەکەی مەحمود)
-        for _, v in ipairs(rawResults) do
-            table.insert(readList, {address = v.address + 28, flags = gg.TYPE_DWORD})
-        end
-        
-        local values = {}
-        pcall(function() values = gg.getValues(readList) end)
-        
-        if values then
-            for i, v in ipairs(values) do
-                if v.value ~= nil and v.value > 0 then
-                    table.insert(valid, rawResults[i])
+        for i = 1, total, batchSize do
+            local size = math.min(batchSize, total - i + 1)
+            local part = {}
+            pcall(function() part = gg.getResults(size, i - 1) end)
+            
+            local readList = {}
+            for _, v in ipairs(part) do
+                table.insert(readList, {address = v.address + 28, flags = gg.TYPE_DWORD})
+            end
+            
+            local values = {}
+            pcall(function() values = gg.getValues(readList) end)
+            
+            if values then
+                for j, v in ipairs(values) do
+                    if v.value ~= nil and v.value > 0 then
+                        table.insert(valid, part[j])
+                    end
                 end
             end
         end
@@ -4410,37 +4390,18 @@ function CardsSystemAram()
     end
 
     local input = gg.prompt({'بڕی کارت بنوسە:'}, {'0'}, {'number'})
-    if input == nil then return CardsSystemAram() end
-    local newVal = tonumber(input[1])
-
-    -- دەستکاریکردن بە شێوازی پارێزراو
-    local edits = {}
-    local freeze = {}
-    local slotIdx = 1
-
-    pcall(function()
-        for i = 1, 5 do
-            if menu[i] and cardsResults[slotIdx] then
-                local r = cardsResults[slotIdx]
-                table.insert(freeze, {address = r.address + 12, value = 2, flags = gg.TYPE_DWORD, freeze = true})
-                table.insert(edits, {address = r.address + 28, value = newVal, flags = gg.TYPE_DWORD})
-                slotIdx = slotIdx + 1
-            end
-        end
-    end)
+    if not input then return CardsSystemAram() end
     
-    if #edits > 0 then
-        pcall(function() 
-            gg.setValues(edits) 
-            gg.addListItems(freeze)
-        end)
-        gg.toast("✅ بە سەرکەوتوویی گۆڕدرا")
-    else
-        gg.alert("❌ هیچ گۆڕانکارییەک نەکرا!")
+    local edits = {}
+    for _, item in ipairs(cardsResults) do
+        table.insert(edits, {address = item.address + 28, value = tonumber(input[1]), flags = gg.TYPE_DWORD})
     end
     
+    pcall(function() gg.setValues(edits) end)
+    gg.toast("✅ ئەنجامدرا")
     return CardsSystemAram()
 end
+
 
 
 
