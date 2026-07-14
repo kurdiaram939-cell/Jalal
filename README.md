@@ -4059,52 +4059,45 @@ gg.clearList()
 ---------------------------------------------------------
 
 function WheatLevelXP()
-    gg.clearResults()
-    gg.setRanges(gg.REGION_ANONYMOUS | gg.REGION_C_ALLOC | gg.REGION_CODE_APP)
     
-    -- گەڕان بۆ کۆدەکانی گەنم
-    gg.searchNumber("1701147414;2002744164;1123024896", gg.TYPE_DWORD)
-    
-    -- پشکنین پێش ڕیفاینکردن
-    if gg.getResultsCount() == 0 then
-        gg.alert("❌ گەڕانی سەرەکی هیچ ئەنجامێکی نەبوو! دڵنیابەرەوە لە یارییەکە.")
-        MainMenu()
-        return
-    end
-    
-    gg.refineNumber("1123024896", gg.TYPE_DWORD)
-    
-    -- دڵنیابوونەوە لەوەی دوای ڕیفاین ئەنجام ماوە یان نا
-    local count = gg.getResultsCount()
-    if count == 0 then
-        gg.alert("❌ دوای پاڵاوتن (Refine) بەهاکە ون بوو! دووبارە تاقی بکەرەوە.")
-        MainMenu()
-        return
-    end
-    
-    local results = gg.getResults(1)
-    
-    if #results > 0 then
-        local base = results[1].address
-        local input = gg.prompt({
-            "⚠️ مارەباب xp زۆر دانەنێیت با نەچیت بۆ مەریخ 🪐\n\nبڕی XP بۆ هەر دروێنەیەک بنووسە:"
-        }, {5000}, {"number"})
-        
-        if input ~= nil then
-            local edits = {}
-            
-            table.insert(edits, {address = base, value = 0, flags = gg.TYPE_DWORD})
-            table.insert(edits, {address = base + 0x10, value = 0, flags = gg.TYPE_DWORD})
-            table.insert(edits, {address = base + 0x14, value = tonumber(input[1]), flags = gg.TYPE_DWORD})
-            
-            gg.setValues(edits)
-            gg.toast("✅ ئاستی گەنم بە سەرکەوتوویی چالاک کرا")
-            gg.clearResults()
-        end
-    else
-        gg.alert("❌ دڵنیابەوە لە یاری بە سراوەتەوە بە جێم ")
-    end
-    MainMenu()
+gg.alert("⚠️ ملحوظه لا تضع عدد كبير حتي لا يرتفع المستوى بشكل كبير⚠️")
+gg.toast("❤️لا تنسى الصلاة على النبي❤️")
+gg.clearResults()
+gg.setVisible(false)
+
+gg.searchNumber('1701147414;2002744164;1123024896', gg.TYPE_DWORD) 
+gg.refineNumber('1123024896', gg.TYPE_DWORD)
+n = gg.getResultCount()
+if n == 0 then
+gg.alert("❌ كود زياده المستوى من الزراعة لا يعمل ❌\n\n📸 تحدث مع مطور الاسكربت وأرسل صوره📸 ")
+gg.clearResults()
+return
+end
+gg.toast(n)
+jz = gg.getResults(n)
+local messageShown = false 
+local toastShown = false 
+local M12 = gg.prompt({" 🇪🇬Edited by MAHMOUDHERO🇪🇬".."\n🇪🇬 Egypt mother of the world 🇪??\n"},{[1]="\n🙋اكتب الرقم الذي تريده🙋\n"},nil,{'number'})
+if M12 == nil then
+else
+end
+if M12[1] ==nil then
+else
+end
+for i = 1, n do
+gg.addListItems({[1] = {address = jz[i].address + 0,flags = gg.TYPE_DWORD,freeze = true,value = 0}})
+gg.addListItems({[1] = {address = jz[i].address + 16,flags = gg.TYPE_QWORD,freeze = true,value = M12[1],gg.TYPE_QWORD}})
+if not messageShown then
+if not toastShown then
+gg.alert("🤡كل ما تفعله ازرع القمح واحصده🤡")
+gg.toast("🏴‍☠️🔥𝙈𝘼𝙃𝙈𝙊𝙐𝘿𝙃𝙀𝙍𝙊🔥🏴‍☠️")
+toastShown = true
+messageShown = true 
+end 
+end
+end
+gg.clearList()
+gg.clearResults()
 end
 
 ---------------------------------------------------------
