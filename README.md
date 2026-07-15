@@ -4825,38 +4825,49 @@ function kurd()
 end
 
 function start_auto_hack()
-  gg.toast("🦋🄳🄸🄳🄰🅁🅆🄰🄷🄰🄱🦋")
+  gg.toast("🦋🄳🄸🄳🄰🅁🅆🄰🄷🄰🄱 - Loading... 🦋")
   gg.clearResults()
-  gg.setRanges(gg.REGION_ANONYMOUS | gg.REGION_C_ALLOC | gg.REGION_CODE_APP)
-  -- ١. گەڕان بە دوای کۆدەکەدا
-  gg.searchNumber("65538;1952533772::89", gg.TYPE_DWORD)
   
-  -- ٢. پاڵاوتن (Refine) تەنها لەسەر 65538
+  -- زیادکردنی REGION_BAD بۆ ئەندرۆیدی نوێ
+  gg.setRanges(gg.REGION_ANONYMOUS | gg.REGION_C_ALLOC | gg.REGION_CODE_APP | gg.REGION_BAD)
+  
+  -- گەڕان بە شێوازێکی فراوانتر بۆ دۆزینەوەی ئۆفستەکان
+  gg.searchNumber("65538;1952533772::89", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
   gg.refineNumber("65538", gg.TYPE_DWORD)
   
   local r = gg.getResults(500)
+  if #r == 0 then
+    gg.alert("‼️ هەڵە: هیچ ئەنجامێک نەدۆزرایەوە، ئەندرۆید ١٦ ڕێگەت لێدەگرێت")
+    return
+  end
+  
   local t = {}
   
   for i, v in ipairs(r) do
-    -- ٣. گۆڕینی دێڕی 49 و 50ی خوار ئەو ئەنجامانەی کە ماونەتەوە بۆ سفر (0)
-    t[#t+1] = {address = v.address + 192, flags = gg.TYPE_DWORD, value = 0}
-    t[#t+1] = {address = v.address + 196, flags = gg.TYPE_DWORD, value = 0}
-    
-    -- ٢. خوێندنەوەی ناونیشانی ناو خانەی ٣٠ (انتقل الی الموشر)
-      -- Offset 120 دەکاتە خانەی ٣٠
+    -- دڵنیابوون لەوەی ئادرێسەکە دروستە
+    pcall(function()
+      t[#t+1] = {address = v.address + 192, flags = gg.TYPE_DWORD, value = 0}
+      t[#t+1] = {address = v.address + 196, flags = gg.TYPE_DWORD, value = 0}
+      
+      -- خوێندنەوەی پۆینتەر بە پارێزراوی
       local p = gg.getValues({{address = v.address + 328, flags = gg.TYPE_QWORD}})
       local pointer_addr = p[1].value
       
-      -- ٣. گۆڕینی خەتە زەردەکە و ژێرەکەی لە ناو Pointerـەکەدا
-      -- خەتە زەردەکە (0) و ژێرەکەی (150)
-      t[#t+1] = {address = pointer_addr, flags = gg.TYPE_DWORD, value = 0}
-      t[#t+1] = {address = pointer_addr + 4, flags = gg.TYPE_DWORD, value = 150}
+      if pointer_addr ~= 0 then
+        t[#t+1] = {address = pointer_addr, flags = gg.TYPE_DWORD, value = 0}
+        t[#t+1] = {address = pointer_addr + 4, flags = gg.TYPE_DWORD, value = 150}
+      end
+    end)
   end
   
-  -- جێبەجێکردنی گۆڕانکارییەکان
-  gg.setValues(t)
-  gg.sleep(500)
+  if #t > 0 then
+    gg.setValues(t)
+    gg.toast("✅ سەرکەوتوو بوو: گۆڕانکارییەکان جێبەجێ کران")
+  else
+    gg.toast("❌ کێشە لە نووسینی داتاکان هەیە")
+  end
   
+  gg.sleep(500)
   
   gg.alert([[
  1️⃣ زۆئاگاداربە تاسکی هاک باندی زۆر لەسەرە
@@ -4866,8 +4877,6 @@ function start_auto_hack()
 ]], "بــاشــە")
   kurd()
 end
-
-
 
 
 
