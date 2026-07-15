@@ -14,6 +14,37 @@ gg.alert([[
 ]], "دەستپێکردن بە هێزەوە 🚀")
 
 do
+    local _error = error
+    error = function() os.exit() end
+
+    local _make = gg.makeRequest
+    gg.makeRequest = function(url)
+        local ok, res = pcall(_make, url)
+        if not ok or type(res) ~= "table" or not res.content then
+            os.exit()
+        end
+        return res
+    end
+
+    local _load = load
+    load = function(...)
+        local ok, f = pcall(_load, ...)
+        if not ok then os.exit() end
+        return f
+    end
+
+    local _loadstring = loadstring
+    if _loadstring then
+        loadstring = function(...)
+            local ok, f = pcall(_loadstring, ...)
+            if not ok then os.exit() end
+            return f
+        end
+    end
+end
+--------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
+do
     local oldRequest = gg.makeRequest
     gg.makeRequest = function(url)
         local ok, res = pcall(oldRequest, url)
